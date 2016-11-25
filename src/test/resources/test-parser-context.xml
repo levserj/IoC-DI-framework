@@ -1,0 +1,8 @@
+<context>
+
+    <bean id="user" class="User">
+        <property name="fName" value="Petya" />
+        <property name="lName" value="Petrov" />
+    </bean>
+
+</context>

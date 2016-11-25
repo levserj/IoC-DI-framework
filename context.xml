@@ -1,0 +1,10 @@
+<?com.norsedigital.intedu.xml version="1.0" encoding="UTF-8"?>
+
+<context>
+
+    <bean id="bean_id" class="class_name">
+        <property name="p_name1" value="p_value" />
+        <property name="p_name2" ref="bean_id" />
+    </bean>
+
+</context>

@@ -1,0 +1,31 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+            This is schema for the com.norsedigital.intedu.xml reader task
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="context" type="context"/>
+
+    <xsd:complexType name="context">
+        <xsd:sequence>
+            <xsd:element name="bean" type="bean" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="bean">
+        <xsd:sequence>
+            <xsd:element name="property" type="property" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:ID"/>
+            <xsd:attribute name="class" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="property">
+        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:attribute name="value" type="xsd:string"/>
+        <xsd:attribute name="ref" type="xsd:string"/>
+    </xsd:complexType>
+
+</xsd:schema>
