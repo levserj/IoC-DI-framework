@@ -8,10 +8,9 @@
 
     <xsd:element name="context" type="context"/>
 
-
     <xsd:complexType name="context">
         <xsd:sequence>
-            <xsd:element name="annotationScan" type="annotationScan"/>
+            <xsd:element name="annotationScan" type="annotationScan" maxOccurs="1"/>
             <xsd:sequence>
                 <xsd:element name="bean" type="bean" minOccurs="1" maxOccurs="unbounded"/>
             </xsd:sequence>
@@ -19,7 +18,7 @@
     </xsd:complexType>
 
     <xsd:complexType name="annotationScan">
-        <xsd:attribute name="enabled" type="xsd:boolean" />
+        <xsd:attribute name="enabled" type="xsd:boolean" default="false"/>
         <xsd:attribute name="package" type="xsd:string"/>
     </xsd:complexType>
 

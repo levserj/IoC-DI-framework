@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ContextInitializerTest {
 
     private static ContextInitializer contextInitializer;
-    private static Map<String, Object> context;
+    private static ContextHolder holder;
     private static String pathToContext = "src/test/resources/test-context.xml";
     private static String pathToSchema = "src/test/resources/context.xsd";
 
@@ -25,12 +25,12 @@ public class ContextInitializerTest {
     public static void setUp(){
         contextInitializer = new ContextInitializer();
         contextInitializer.initializeContext(pathToContext, pathToSchema);
-        context = ContextHolder.INSTANCE.getContext();
+        holder = ContextHolder.INSTANCE;
     }
 
     @Test
     public void checkThatBeansFromXmlConfigInitialized(){
-        User yoda = (User) context.get("Light_Side_user");
+        User yoda = (User) holder.getBean("Light_Side_user");
         assertThat(yoda.getName(), is("Yoda"));
         assertThat(yoda.getAddress().getCity(), is("Odessa"));
         assertThat(yoda.getAddress().getPlace(), is("Norse Digital"));
@@ -38,7 +38,7 @@ public class ContextInitializerTest {
 
     @Test
     public void checkThatAnnotationConfigWorks(){
-        User palpatin = (User) context.get("Dark_Side_user");
+        User palpatin = (User) holder.getBean("Dark_Side_user");
         assertThat(palpatin.getName(), is("Palpatin"));
         assertThat(palpatin.getAddress().getCity(), is("Coruscant"));
         assertThat(palpatin.getAddress().getPlace(), is("Galactic Senate"));

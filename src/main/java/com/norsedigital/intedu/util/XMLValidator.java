@@ -46,7 +46,8 @@ public class XMLValidator {
             validator.validate(new DOMSource(document));
             return true;
         } catch (Exception e) {
-            logger.error("INVALID XML FOUND : " + xmlFilePath + " : " + e.getMessage());
+            logger.error(String.format("XML validation error, invalid xml : %1$s;\n Exception : %2$s.",
+                    xmlFilePath, e.getMessage()));
             return false;
         }
     }

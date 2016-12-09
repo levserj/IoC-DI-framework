@@ -42,14 +42,14 @@ public class JaxbXMLParser {
                     beanMap.put(bean.getId(), bean);
                 });
             } catch (JAXBException e) {
-                e.printStackTrace();
+                logger.debug("XML parsing error : " + e.getMessage());
             }
             beanList.forEach(bean -> {
                 logger.debug("ContextBean id = " + bean.getId());
                 logger.debug("ContextBean class = " + bean.getClazz());
             });
         } else{
-            logger.error("Invalid xml");
+            logger.error("Invalid XML");
         }
         return beanMap;
     }

@@ -28,7 +28,6 @@ public class ContextInitializer {
     private Map<String, Bean> beansMap;
     private Map<String, CustomBean> customBeansMap;
     private Map<String, CustomBean> beansWithDependencies = new HashMap<>();
-    private Map<String, Object> context = ContextHolder.INSTANCE.getContext();
     private ContextHolder holder = ContextHolder.INSTANCE;
 
     public void initializeContext(String pathToContext, String pathToSchema) {
@@ -46,7 +45,7 @@ public class ContextInitializer {
         customBeansMap = new BeanConverter().convertBeanToCustomBean(beansMap);
         for (CustomBean bean : customBeansMap.values()) {
             Object object = createBeanUsingXmlConfig(customBeansMap.get(bean.getId()));
-            context.put(bean.getId(), object);
+            holder.putBean(bean.getId(), object);
         }
     }
     private void createAllBeansUsingAnnotations(String packageToScan) {
@@ -60,7 +59,7 @@ public class ContextInitializer {
             ContextBean annotation = clazz.getDeclaredAnnotation(ContextBean.class);
             beanId = annotation.value();
             Object object = createBeanUsingAnnotations(className);
-            context.put(beanId, object);
+            holder.putBean(beanId, object);
         }
     }
 
@@ -80,7 +79,7 @@ public class ContextInitializer {
     }
 
     private void injectDependenciesToBeansUsingAnnotations() {
-        for (Map.Entry<String, Object> entry : context.entrySet()) {
+        for (Map.Entry<String, Object> entry : holder.getEntrySet()) {
             String beanId = entry.getKey();
             List<Field> annotatedFields = getAnnotatedFields(entry.getValue().getClass());
             for (Field field : annotatedFields) {
@@ -155,18 +154,20 @@ public class ContextInitializer {
                 field.set(object, fieldValue);
             }
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.error(String.format("Failed to set objects (%1$s) field (%2$s) value (%3$s);\n Exception message : (%4$s).",
+                    object.getClass().getName(), field.getName(), fieldValue, e.getMessage()));
         }
         return object;
     }
 
     private void injectDependencyToBean(String beanId, String dependencyId, Field fieldToInjectDependency) {
-        Object bean = context.get(beanId);
-        Object dependency = context.get(dependencyId);
+        Object bean = holder.getBean(beanId);
+        Object dependency = holder.getBean(dependencyId);
         try {
             fieldToInjectDependency.set(bean, dependency);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.error(String.format("Failed to inject dependency (%1$s) to beans (%2$s) field (%3$s);\n Exception message : (%4$s).",
+                    dependencyId, beanId, fieldToInjectDependency.getName(), e.getMessage()));
         }
     }
 
@@ -190,7 +191,8 @@ public class ContextInitializer {
         try {
             clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            log.error(String.format("Failed to get class by class name (%1$s);\n Exception message : (%2$s).",
+                    className, e.getMessage()));
         }
         return clazz;
     }
@@ -200,7 +202,8 @@ public class ContextInitializer {
         try {
             object = clazz.newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(String.format("Failed to create object by class name (%1$s);\n Exception message : (%2$s).",
+                    clazz, e.getMessage()));
         }
         return object;
     }
@@ -212,7 +215,8 @@ public class ContextInitializer {
             field = clazz.getDeclaredField(fieldName);
             field.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            e.printStackTrace();
+            log.error(String.format("Failed to get field (%1$s) from class (%2$s);\n Exception message : (%3$s).",
+                    fieldName, clazz, e.getMessage()));
         }
         return field;
     }

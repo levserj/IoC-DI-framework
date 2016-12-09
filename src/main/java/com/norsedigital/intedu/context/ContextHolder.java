@@ -1,6 +1,7 @@
 package com.norsedigital.intedu.context;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,8 +14,16 @@ public enum ContextHolder {
     private Boolean annotationScan;
     private String packageToScan;
 
-    public Map<String, Object> getContext() {
-        return Context;
+    public Object getBean(Object beanId) {
+        return Context.get(beanId);
+    }
+
+    public void putBean(String beanId, Object bean){
+        Context.put(beanId, bean);
+    }
+
+    public Set<Map.Entry<String, Object>> getEntrySet(){
+        return Context.entrySet();
     }
 
     public void setPackageToScan(String packageToScan) {

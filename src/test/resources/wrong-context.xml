@@ -2,11 +2,11 @@
 
 
 <context>
+    <wrongTag>
+
+    </wrongTag>
     <bean id="bean_id" class="class_name">
         <property name="p_name1" value="p_value" />
         <property name="p_name2" ref="bean_id" />
     </bean>
-    <wrongTag>
-
-    </wrongTag>
 </context>
