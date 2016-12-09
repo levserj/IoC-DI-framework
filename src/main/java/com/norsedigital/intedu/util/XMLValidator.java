@@ -1,4 +1,4 @@
-package com.norsedigital.intedu;
+package com.norsedigital.intedu.util;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -46,7 +46,7 @@ public class XMLValidator {
             validator.validate(new DOMSource(document));
             return true;
         } catch (Exception e) {
-            logger.error("INVALID XML FOUND : " + xmlFilePath + " : " + e);
+            logger.error("INVALID XML FOUND : " + xmlFilePath + " : " + e.getMessage());
             return false;
         }
     }

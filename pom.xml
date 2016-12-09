@@ -1,12 +1,13 @@
-<?com.norsedigital.intedu.xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.norsedigital.learning</groupId>
-    <artifactId>xml-config-reader</artifactId>
+    <artifactId>context-init-framework</artifactId>
     <version>1.0</version>
+
     <build>
         <plugins>
             <plugin>
@@ -31,6 +32,12 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.lukehutch</groupId>
+            <artifactId>fast-classpath-scanner</artifactId>
+            <version>LATEST</version>
         </dependency>
 
     </dependencies>

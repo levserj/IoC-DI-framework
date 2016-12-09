@@ -1,4 +1,4 @@
-package com.norsedigital.intedu;
+package com.norsedigital.intedu.parser;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,8 +6,9 @@ import java.util.List;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import com.norsedigital.intedu.model.Bean;
-import com.norsedigital.intedu.model.Property;
+import com.norsedigital.intedu.model.generated.Bean;
+import com.norsedigital.intedu.model.generated.Property;
+import com.norsedigital.intedu.util.XMLValidator;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

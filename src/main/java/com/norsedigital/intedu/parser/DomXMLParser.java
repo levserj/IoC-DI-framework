@@ -1,7 +1,8 @@
-package com.norsedigital.intedu;
+package com.norsedigital.intedu.parser;
 
-import com.norsedigital.intedu.model.Bean;
-import com.norsedigital.intedu.model.Property;
+import com.norsedigital.intedu.model.generated.Bean;
+import com.norsedigital.intedu.model.generated.Property;
+import com.norsedigital.intedu.util.XMLValidator;
 import org.apache.log4j.Logger;
 import org.w3c.dom.*;
 

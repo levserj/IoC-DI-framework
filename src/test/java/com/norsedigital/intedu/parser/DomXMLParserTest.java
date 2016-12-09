@@ -1,8 +1,7 @@
-package com.norsedigital.intedu;
+package com.norsedigital.intedu.parser;
 
-import com.norsedigital.intedu.JaxbXMLParser;
-import com.norsedigital.intedu.model.Bean;
-import com.norsedigital.intedu.model.Context;
+import com.norsedigital.intedu.model.generated.Bean;
+import com.norsedigital.intedu.parser.DomXMLParser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,18 +11,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Created by sl on 24.11.16.
+ * Created by sl on 25.11.16.
  */
-public class JaxbXMLParserTest {
+public class DomXMLParserTest {
 
-    private JaxbXMLParser converter;
+    private DomXMLParser converter;
     private List<Bean> beanList;
     private String xmlTestFilePath;
 
     @Before
     public void setUp() {
         xmlTestFilePath = "src/test/resources/test-parser-context.xml";
-        converter = new JaxbXMLParser();
+        converter = new DomXMLParser();
         beanList = converter.parseXmltoBeansList(xmlTestFilePath);
     }
 

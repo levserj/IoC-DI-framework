@@ -1,8 +1,7 @@
-package com.norsedigital.intedu;
+package com.norsedigital.intedu.parser;
 
-import com.norsedigital.intedu.DomXMLParser;
-import com.norsedigital.intedu.SaxXMLParser;
-import com.norsedigital.intedu.model.Bean;
+import com.norsedigital.intedu.model.generated.Bean;
+import com.norsedigital.intedu.parser.SaxXMLParser;
 import org.junit.Before;
 import org.junit.Test;
 

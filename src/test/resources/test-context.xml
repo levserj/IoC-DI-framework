@@ -1,0 +1,17 @@
+<?com.norsedigital.intedu.xml version="1.0" encoding="UTF-8"?>
+
+<context>
+
+    <annotationScan enabled="true" package="com.norsedigital.intedu"/>
+
+    <bean id="Light_Side_user" class="com.norsedigital.intedu.model.User">
+        <property name="name" value="Yoda" />
+        <property name="address" ref="homeAddress" />
+    </bean>
+
+    <bean id="homeAddress" class="com.norsedigital.intedu.model.Address">
+        <property name="city" value="Odessa" />
+        <property name="place" value="Norse Digital" />
+    </bean>
+
+</context>

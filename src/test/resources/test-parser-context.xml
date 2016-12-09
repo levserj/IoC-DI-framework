@@ -1,5 +1,7 @@
 <context>
 
+    <annotationScan enabled="false"/>
+
     <bean id="user" class="User">
         <property name="fName" value="Petya" />
         <property name="lName" value="Petrov" />

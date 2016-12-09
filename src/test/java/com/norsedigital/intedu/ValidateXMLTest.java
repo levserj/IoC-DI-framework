@@ -1,6 +1,6 @@
 package com.norsedigital.intedu;
 
-import com.norsedigital.intedu.XMLValidator;
+import com.norsedigital.intedu.util.XMLValidator;
 import org.junit.Before;
 import org.junit.Test;
 
