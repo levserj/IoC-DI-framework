@@ -4,7 +4,7 @@
 
     <annotationScan enabled="true" package="com.norsedigital.intedu"/>
 
-    <bean id="Light_Side_user" class="com.norsedigital.intedu.model.User">
+    <bean id="Light_Side_user" class="com.norsedigital.intedu.model.User" scope="prototype">
         <property name="name" value="Yoda" />
         <property name="address" ref="homeAddress" />
     </bean>

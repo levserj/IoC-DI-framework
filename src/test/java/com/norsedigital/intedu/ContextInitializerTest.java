@@ -10,6 +10,8 @@ import org.junit.Test;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -45,5 +47,19 @@ public class ContextInitializerTest {
         assertThat(palpatin.getName(), is("Palpatin"));
         assertThat(palpatin.getAddress().getCity(), is("Coruscant"));
         assertThat(palpatin.getAddress().getPlace(), is("Galactic Senate"));
+    }
+
+    @Test
+    public void checkThatBeansWithPrototypeScopeArePointingToDifferentInstances(){
+        User yoda = (User) holder.getBean("Light_Side_user");
+        User clone = (User) holder.getBean("Light_Side_user");
+        assertThat(yoda, is(not(sameInstance(clone))));
+    }
+
+    @Test
+    public void checkThatBeansWithDefaultSingletonScopeArePointingToSameInstance(){
+        User palpatin = (User) holder.getBean("Dark_Side_user");
+        User fakeClone = (User) holder.getBean("Dark_Side_user");
+        assertThat(palpatin, is(sameInstance(fakeClone)));
     }
 }

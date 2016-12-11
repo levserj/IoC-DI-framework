@@ -18,6 +18,7 @@ public class BeanConverter {
             BeanDefinition beanDefinition = new BeanDefinition();
             beanDefinition.setId(bean.getId());
             beanDefinition.setClazz(bean.getClazz());
+            beanDefinition.setScope(bean.getScope());
             for (Property p : bean.getProperty()){
                 beanDefinition.getPropertyMap().put(p.getName(), p);
             }

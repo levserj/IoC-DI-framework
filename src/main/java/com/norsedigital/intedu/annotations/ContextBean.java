@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ContextBean {
     public String value();
+    public String scope() default "singleton";
 }

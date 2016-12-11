@@ -28,6 +28,7 @@
         </xsd:sequence>
             <xsd:attribute name="id" type="xsd:ID"/>
             <xsd:attribute name="class" type="xsd:string"/>
+            <xsd:attribute name="scope" type="xsd:string" default="singleton"/>
     </xsd:complexType>
 
     <xsd:complexType name="property">

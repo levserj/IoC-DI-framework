@@ -3,11 +3,13 @@ package com.norsedigital.intedu.model;
 import com.norsedigital.intedu.annotations.ContextBean;
 import com.norsedigital.intedu.annotations.Value;
 
+import java.io.Serializable;
+
 /**
  * Created by sl on 28.11.16.
  */
 @ContextBean("workAddress")
-public class Address {
+public class Address implements Serializable {
 
     @Value("Coruscant")
     private String city;

@@ -20,12 +20,12 @@ import java.util.Map;
 /**
  * Created by sl on 28.11.16.
  */
-public class ContextInitializer {
+public final class ContextInitializer {
 
-    private final Logger log = Logger.getLogger(this.getClass());
+    private final Logger log = Logger.getLogger(ContextInitializer.class);
 
     private JaxbXMLParser parser = new JaxbXMLParser();
-    private Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
+    static Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
     private Map<BeanDefinition, List<Property>> beansDefinitionsWithDependencies = new HashMap<>();
     private ContextHolder holder = ContextHolder.INSTANCE;
 
@@ -47,13 +47,16 @@ public class ContextInitializer {
         ScanResult scanResult = scanner.scan();
         List<String> classesList = scanResult.getNamesOfClassesWithAnnotation(ContextBean.class);
         String beanId;
+        String beanScope;
         for (String className : classesList) {
             Class<?> clazz = getClassByClassName(className);
             ContextBean annotation = clazz.getDeclaredAnnotation(ContextBean.class);
             beanId = annotation.value();
+            beanScope = annotation.scope();
             BeanDefinition beanDefinition = new BeanDefinition();
             beanDefinition.setId(beanId);
             beanDefinition.setClazz(className);
+            beanDefinition.setScope(beanScope);
             addPropertiesToBeansDefinitions(beanDefinition);
             beansDefinitionsMap.put(beanId, beanDefinition);
         }
@@ -161,8 +164,9 @@ public class ContextInitializer {
     }
 
     private void injectDependencyToBean(String beanId, String dependencyId, Field fieldToInjectDependency) {
-        Object bean = holder.getBean(beanId);
-        Object dependency = holder.getBean(dependencyId);
+        Map<String, Object> context = ContextHolder.INSTANCE.getContext();
+        Object bean = context.get(beanId);
+        Object dependency = context.get(dependencyId);
         try {
             fieldToInjectDependency.set(bean, dependency);
         } catch (IllegalAccessException e) {

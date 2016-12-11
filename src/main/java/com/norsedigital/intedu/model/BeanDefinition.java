@@ -13,6 +13,7 @@ public class BeanDefinition {
 
     private String id;
     private String clazz;
+    private String scope;
     private Map<String, Property> propertyMap;
 
     public String getId() {
@@ -40,5 +41,13 @@ public class BeanDefinition {
 
     public void setPropertyMap(Map<String, Property> propertyMap) {
         this.propertyMap = propertyMap;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }
