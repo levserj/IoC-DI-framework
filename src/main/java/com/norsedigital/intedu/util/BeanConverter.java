@@ -1,6 +1,6 @@
 package com.norsedigital.intedu.util;
 
-import com.norsedigital.intedu.model.CustomBean;
+import com.norsedigital.intedu.model.BeanDefinition;
 import com.norsedigital.intedu.model.generated.Bean;
 import com.norsedigital.intedu.model.generated.Property;
 
@@ -12,16 +12,16 @@ import java.util.Map;
  */
 public class BeanConverter {
 
-    public Map<String, CustomBean> convertBeanToCustomBean(Map<String, Bean> input){
-        Map<String, CustomBean> result = new HashMap<>();
+    public Map<String, BeanDefinition> convertBeansToBeansDefinitions(Map<String, Bean> input){
+        Map<String, BeanDefinition> result = new HashMap<>();
         for (Bean bean : input.values()){
-            CustomBean customBean = new CustomBean();
-            customBean.setId(bean.getId());
-            customBean.setClazz(bean.getClazz());
+            BeanDefinition beanDefinition = new BeanDefinition();
+            beanDefinition.setId(bean.getId());
+            beanDefinition.setClazz(bean.getClazz());
             for (Property p : bean.getProperty()){
-                customBean.getPropertyMap().put(p.getName(), p);
+                beanDefinition.getPropertyMap().put(p.getName(), p);
             }
-            result.put(bean.getId(), customBean);
+            result.put(bean.getId(), beanDefinition);
         }
         return result;
     }

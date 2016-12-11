@@ -3,6 +3,7 @@ package com.norsedigital.intedu;
 import com.norsedigital.intedu.context.ContextHolder;
 import com.norsedigital.intedu.context.ContextInitializer;
 import com.norsedigital.intedu.model.User;
+import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -15,6 +16,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Created by sl on 08.12.16.
  */
 public class ContextInitializerTest {
+
+    private final Logger log = Logger.getLogger(this.getClass());
 
     private static ContextInitializer contextInitializer;
     private static ContextHolder holder;
@@ -37,7 +40,7 @@ public class ContextInitializerTest {
     }
 
     @Test
-    public void checkThatAnnotationConfigWorks(){
+    public void checkThatAnnotatedBeansInitialized(){
         User palpatin = (User) holder.getBean("Dark_Side_user");
         assertThat(palpatin.getName(), is("Palpatin"));
         assertThat(palpatin.getAddress().getCity(), is("Coruscant"));

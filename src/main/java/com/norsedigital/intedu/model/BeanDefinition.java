@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by sl on 02.12.16.
  */
 
-public class CustomBean {
+public class BeanDefinition {
 
     private String id;
     private String clazz;

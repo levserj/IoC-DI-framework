@@ -2,7 +2,7 @@ package com.norsedigital.intedu.context;
 
 import com.norsedigital.intedu.util.BeanConverter;
 import com.norsedigital.intedu.annotations.*;
-import com.norsedigital.intedu.model.CustomBean;
+import com.norsedigital.intedu.model.BeanDefinition;
 import com.norsedigital.intedu.model.generated.Bean;
 import com.norsedigital.intedu.model.generated.Property;
 import com.norsedigital.intedu.parser.JaxbXMLParser;
@@ -25,30 +25,23 @@ public class ContextInitializer {
     private final Logger log = Logger.getLogger(this.getClass());
 
     private JaxbXMLParser parser = new JaxbXMLParser();
-    private Map<String, Bean> beansMap;
-    private Map<String, CustomBean> customBeansMap;
-    private Map<String, CustomBean> beansWithDependencies = new HashMap<>();
+    private Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
+    private Map<BeanDefinition, List<Property>> beansDefinitionsWithDependencies = new HashMap<>();
     private ContextHolder holder = ContextHolder.INSTANCE;
 
     public void initializeContext(String pathToContext, String pathToSchema) {
-        beansMap = parser.parseXmltoBeansMap(pathToContext, pathToSchema);
+        Map<String, Bean> beansMap = parser.parseXmltoBeansMap(pathToContext, pathToSchema);
         log.debug("ANNOTATION SCAN IS : " + holder.getAnnotationScan());
         if (holder.getAnnotationScan()) {
-            createAllBeansUsingAnnotations(holder.getPackageToScan());
-            injectDependenciesToBeansUsingAnnotations();
+            createBeansDefinitionsUsingAnnotations(holder.getPackageToScan());
         }
-        createAllBeansUsingXml();
-        injectDependenciesToBeansUsingXml();
+        Map<String, BeanDefinition> beansDefinitionsFromXMLConfig = new BeanConverter().convertBeansToBeansDefinitions(beansMap);
+        beansDefinitionsMap.putAll(beansDefinitionsFromXMLConfig);
+        createAllBeansFromBeansDefinition();
+        injectDependenciesToBeans();
     }
 
-    private void createAllBeansUsingXml(){
-        customBeansMap = new BeanConverter().convertBeanToCustomBean(beansMap);
-        for (CustomBean bean : customBeansMap.values()) {
-            Object object = createBeanUsingXmlConfig(customBeansMap.get(bean.getId()));
-            holder.putBean(bean.getId(), object);
-        }
-    }
-    private void createAllBeansUsingAnnotations(String packageToScan) {
+    private void createBeansDefinitionsUsingAnnotations(String packageToScan) {
         FastClasspathScanner scanner = new FastClasspathScanner(packageToScan);
         scanner.enableMethodAnnotationIndexing();
         ScanResult scanResult = scanner.scan();
@@ -58,44 +51,47 @@ public class ContextInitializer {
             Class<?> clazz = getClassByClassName(className);
             ContextBean annotation = clazz.getDeclaredAnnotation(ContextBean.class);
             beanId = annotation.value();
-            Object object = createBeanUsingAnnotations(className);
-            holder.putBean(beanId, object);
+            BeanDefinition beanDefinition = new BeanDefinition();
+            beanDefinition.setId(beanId);
+            beanDefinition.setClazz(className);
+            addPropertiesToBeansDefinitions(beanDefinition);
+            beansDefinitionsMap.put(beanId, beanDefinition);
         }
     }
 
-    private Object createBeanUsingAnnotations(String className) {
-        Class<?> clazz = getClassByClassName(className);
-        Object object = createObjectFromClass(clazz);
+    private void addPropertiesToBeansDefinitions(BeanDefinition beanDefinition) {
+        Class<?> clazz = getClassByClassName(beanDefinition.getClazz());
         List<Field> annotatedFields = getAnnotatedFields(clazz);
         for (Field field : annotatedFields) {
             field.setAccessible(true);
+            String propertyName = field.getName();
+            Property property = new Property();
+            property.setName(propertyName);
             if (field.getAnnotation(Value.class) != null) {
                 Value valueAnnotation = field.getAnnotation(Value.class);
                 String value = valueAnnotation.value();
-                setObjectsFieldValue(object, field, value);
+                property.setValue(value);
             }
-        }
-        return object;
-    }
-
-    private void injectDependenciesToBeansUsingAnnotations() {
-        for (Map.Entry<String, Object> entry : holder.getEntrySet()) {
-            String beanId = entry.getKey();
-            List<Field> annotatedFields = getAnnotatedFields(entry.getValue().getClass());
-            for (Field field : annotatedFields) {
-                field.setAccessible(true);
-                if (field.getAnnotation(Inject.class) != null) {
-                    Inject injectAnnotation = field.getAnnotation(Inject.class);
-                    String dependencyId = injectAnnotation.value();
-                    injectDependencyToBean(beanId, dependencyId, field);
-                }
+            if (field.getAnnotation(Inject.class) != null) {
+                Inject injectAnnotation = field.getAnnotation(Inject.class);
+                String dependencyId = injectAnnotation.value();
+                property.setRef(dependencyId);
             }
+            beanDefinition.getPropertyMap().put(propertyName, property);
         }
     }
 
-    private Object createBeanUsingXmlConfig(CustomBean bean) {
+    private void createAllBeansFromBeansDefinition(){
+        for (BeanDefinition bean : beansDefinitionsMap.values()) {
+            Object object = createBeanFromBeanDefinition(bean);
+            holder.putBean(bean.getId(), object);
+        }
+    }
+
+    private Object createBeanFromBeanDefinition(BeanDefinition bean) {
         Class<?> clazz = getClassByClassName(bean.getClazz());
         Object object = createObjectFromClass(clazz);
+        List<Property> propertiesWithRef = new ArrayList<>();
         for (Property p : bean.getPropertyMap().values()) {
             String pName = p.getName();
             String pRef = p.getRef();
@@ -103,21 +99,25 @@ public class ContextInitializer {
             Field field = getClassField(clazz, pName);
             setObjectsFieldValue(object, field, pValue);
             if (pRef != null) {
-                beansWithDependencies.put(pName, bean);
+                propertiesWithRef.add(p);
             }
+        }
+        if (!propertiesWithRef.isEmpty()){
+            beansDefinitionsWithDependencies.put(bean, propertiesWithRef);
         }
         return object;
     }
 
-    private void injectDependenciesToBeansUsingXml() {
-        for (Map.Entry<String, CustomBean> entry : beansWithDependencies.entrySet()){
-            String pName = entry.getKey();
-            String dependencyId = entry.getValue().getPropertyMap().get(pName).getRef();
-            String beanWithDepId = entry.getValue().getId();
-            String className = entry.getValue().getClazz();
-            Class<?> clazz = getClassByClassName(className);
-            Field refField = getClassField(clazz, pName);
-            injectDependencyToBean(beanWithDepId, dependencyId, refField);
+    private void injectDependenciesToBeans() {
+        for (Map.Entry<BeanDefinition, List<Property>> entry : beansDefinitionsWithDependencies.entrySet()){
+            String beanWithDepId = entry.getKey().getId();
+            Class<?> clazz = getClassByClassName(entry.getKey().getClazz());
+            for (Property p : entry.getValue()){
+                String pName = p.getName();
+                String dependencyId = p.getRef();
+                Field refField = getClassField(clazz, pName);
+                injectDependencyToBean(beanWithDepId, dependencyId, refField);
+            }
         }
     }
 
@@ -153,7 +153,7 @@ public class ContextInitializer {
             } else {
                 field.set(object, fieldValue);
             }
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             log.error(String.format("Failed to set objects (%1$s) field (%2$s) value (%3$s);\n Exception message : (%4$s).",
                     object.getClass().getName(), field.getName(), fieldValue, e.getMessage()));
         }
@@ -176,9 +176,9 @@ public class ContextInitializer {
         List<Field> result = new ArrayList<>();
         for (Field f : allFields) {
             f.setAccessible(true);
-            Annotation[] annotaions = f.getDeclaredAnnotations();
-            if (annotaions.length > 0) {
-                for (Annotation a : annotaions) {
+            Annotation[] annotations = f.getDeclaredAnnotations();
+            if (annotations.length > 0) {
+                for (Annotation a : annotations) {
                     result.add(f);
                 }
             }

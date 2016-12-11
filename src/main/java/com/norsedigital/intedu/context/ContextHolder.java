@@ -14,15 +14,15 @@ public enum ContextHolder {
     private Boolean annotationScan;
     private String packageToScan;
 
-    public Object getBean(Object beanId) {
+    public Object getBean(String beanId) {
         return Context.get(beanId);
     }
 
-    public void putBean(String beanId, Object bean){
+    void putBean(String beanId, Object bean){
         Context.put(beanId, bean);
     }
 
-    public Set<Map.Entry<String, Object>> getEntrySet(){
+    Set<Map.Entry<String, Object>> getEntrySet(){
         return Context.entrySet();
     }
 
