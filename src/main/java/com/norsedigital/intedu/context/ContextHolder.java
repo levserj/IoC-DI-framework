@@ -1,11 +1,9 @@
 package com.norsedigital.intedu.context;
 
-import com.norsedigital.intedu.model.BeanDefinition;
 import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -53,10 +51,6 @@ public enum ContextHolder {
 
     Map<String, Object> getContext() {
         return Context;
-    }
-
-    Set<Map.Entry<String, Object>> getEntrySet(){
-        return Context.entrySet();
     }
 
     public void setPackageToScan(String packageToScan) {
