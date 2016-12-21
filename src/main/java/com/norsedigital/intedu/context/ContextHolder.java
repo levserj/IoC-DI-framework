@@ -1,5 +1,6 @@
 package com.norsedigital.intedu.context;
 
+import com.norsedigital.intedu.model.BeanDefinition;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -12,17 +13,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum ContextHolder {
     INSTANCE;
 
-    private final Logger log = Logger.getLogger(ContextHolder.class);
+    private static final Logger log = Logger.getLogger(ContextHolder.class);
     private final Map<String, Object> Context = new ConcurrentHashMap<>();
+    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
     private Boolean annotationScan;
     private String packageToScan;
 
     public Object getBean(String beanId) {
-        if (ContextInitializer.beansDefinitionsMap.get(beanId).getScope().equals("prototype")){
+        if (beanDefinitionMap.get(beanId).getScope().equals("prototype")){
             return deepCopy(Context.get(beanId));
         }
         return Context.get(beanId);
     }
+
     private Object deepCopy(Object orig) {
         Object obj = null;
         try {
@@ -49,6 +52,10 @@ public enum ContextHolder {
         Context.put(beanId, bean);
     }
 
+    void addBeanDefinitions(Map<String, BeanDefinition> map){
+        beanDefinitionMap.putAll(map);
+    }
+
     Map<String, Object> getContext() {
         return Context;
     }
@@ -57,11 +64,11 @@ public enum ContextHolder {
         this.packageToScan = packageToScan;
     }
 
-    public String getPackageToScan() {
+    String getPackageToScan() {
         return packageToScan;
     }
 
-    public Boolean getAnnotationScan() {
+    Boolean getAnnotationScan() {
         return annotationScan;
     }
 

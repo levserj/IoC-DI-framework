@@ -1,4 +1,4 @@
-package com.norsedigital.intedu.util;
+package com.norsedigital.intedu.xml;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -12,7 +12,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.File;
+import java.io.InputStream;
 
 
 /**
@@ -22,21 +22,26 @@ import java.io.File;
  */
 public class XMLValidator {
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    private static final Logger logger = Logger.getLogger(XMLValidator.class);
+    private final String xsdSchemaPath;
 
-    public boolean validateXML (String xmlFilePath, String xsdFilePath) {
+    public XMLValidator(String xsdSchemaPath) {
+        this.xsdSchemaPath = xsdSchemaPath;
+    }
 
-        // parse an XML document into a DOM tree
-        DocumentBuilder parser = null;
+    public boolean validateXML (String xmlFilePath) {
+
+        InputStream xml = XMLValidator.class.getResourceAsStream(xmlFilePath);
+        InputStream xsd = XMLValidator.class.getResourceAsStream(xsdSchemaPath);
         try {
-            parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = parser.parse(new File(xmlFilePath));
+            DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document document = parser.parse(xml);
             // create a SchemaFactory capable of understanding WXS schemas
 
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
             // load a WXS schema, represented by a Schema instance
-            Source schemaFile = new StreamSource(new File(xsdFilePath));
+            Source schemaFile = new StreamSource(xsd);
             Schema schema = factory.newSchema(schemaFile);
 
             // create a Validator instance, which can be used to validate an instance document

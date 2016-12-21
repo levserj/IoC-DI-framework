@@ -1,9 +1,9 @@
 package com.norsedigital.intedu.context;
 
-import com.norsedigital.intedu.util.BeanConverter;
+import com.norsedigital.intedu.xml.InvalidXmlException;
+import com.norsedigital.intedu.parser.AbstractParser;
 import com.norsedigital.intedu.annotations.*;
 import com.norsedigital.intedu.model.BeanDefinition;
-import com.norsedigital.intedu.model.generated.Bean;
 import com.norsedigital.intedu.model.generated.Property;
 import com.norsedigital.intedu.parser.JaxbXMLParser;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
@@ -22,26 +22,26 @@ import java.util.Map;
  */
 public final class ContextInitializer {
 
-    private final Logger log = Logger.getLogger(ContextInitializer.class);
+    private static final Logger log = Logger.getLogger(ContextInitializer.class);
 
-    private JaxbXMLParser parser = new JaxbXMLParser();
-    static Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
-    private Map<BeanDefinition, List<Property>> beansDefinitionsWithDependencies = new HashMap<>();
     private ContextHolder holder = ContextHolder.INSTANCE;
+    private Map<BeanDefinition, List<Property>> beansDefinitionsWithDependencies = new HashMap<>();
 
-    public void initializeContext(String pathToContext, String pathToSchema) {
-        Map<String, Bean> beansMap = parser.parseXmltoBeansMap(pathToContext, pathToSchema);
-        log.debug("ANNOTATION SCAN IS : " + holder.getAnnotationScan());
+    public void initializeContext(String pathToContext) throws InvalidXmlException {
+        AbstractParser parser = new JaxbXMLParser();
+        Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
+        beansDefinitionsMap.putAll(parser.parseXmlToBeansDefinitionsMap(pathToContext));
+        log.debug("Annotation scan is : " + holder.getAnnotationScan());
         if (holder.getAnnotationScan()) {
-            createBeansDefinitionsUsingAnnotations(holder.getPackageToScan());
+            beansDefinitionsMap.putAll(createBeansDefinitionsUsingAnnotations(holder.getPackageToScan()));
         }
-        Map<String, BeanDefinition> beansDefinitionsFromXMLConfig = new BeanConverter().convertBeansToBeansDefinitions(beansMap);
-        beansDefinitionsMap.putAll(beansDefinitionsFromXMLConfig);
-        createAllBeansFromBeansDefinition();
+        holder.addBeanDefinitions(beansDefinitionsMap);
+        createAllBeansFromBeansDefinition(beansDefinitionsMap);
         injectDependenciesToBeans();
     }
 
-    private void createBeansDefinitionsUsingAnnotations(String packageToScan) {
+    private Map<String, BeanDefinition> createBeansDefinitionsUsingAnnotations(String packageToScan) {
+        Map<String, BeanDefinition> beansDefinitionsMap = new HashMap<>();
         FastClasspathScanner scanner = new FastClasspathScanner(packageToScan);
         scanner.enableMethodAnnotationIndexing();
         ScanResult scanResult = scanner.scan();
@@ -53,13 +53,11 @@ public final class ContextInitializer {
             ContextBean annotation = clazz.getDeclaredAnnotation(ContextBean.class);
             beanId = annotation.value();
             beanScope = annotation.scope();
-            BeanDefinition beanDefinition = new BeanDefinition();
-            beanDefinition.setId(beanId);
-            beanDefinition.setClazz(className);
-            beanDefinition.setScope(beanScope);
+            BeanDefinition beanDefinition = BeanDefinition.create(beanId, className, beanScope);
             addPropertiesToBeansDefinitions(beanDefinition);
             beansDefinitionsMap.put(beanId, beanDefinition);
         }
+        return beansDefinitionsMap;
     }
 
     private void addPropertiesToBeansDefinitions(BeanDefinition beanDefinition) {
@@ -84,7 +82,7 @@ public final class ContextInitializer {
         }
     }
 
-    private void createAllBeansFromBeansDefinition(){
+    private void createAllBeansFromBeansDefinition(Map<String, BeanDefinition> beansDefinitionsMap){
         for (BeanDefinition bean : beansDefinitionsMap.values()) {
             Object object = createBeanFromBeanDefinition(bean);
             holder.putBean(bean.getId(), object);

@@ -1,56 +1,65 @@
 package com.norsedigital.intedu.parser;
 
+import com.norsedigital.intedu.xml.InvalidXmlException;
 import com.norsedigital.intedu.context.ContextHolder;
+import com.norsedigital.intedu.model.BeanDefinition;
 import com.norsedigital.intedu.model.generated.Bean;
 import com.norsedigital.intedu.model.generated.Context;
 import com.norsedigital.intedu.model.generated.ObjectFactory;
-import com.norsedigital.intedu.util.XMLValidator;
+import com.norsedigital.intedu.model.generated.Property;
 import org.apache.log4j.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Created by sl on 24.11.16.
- *
+ * <p>
  * Returns list of beans read from the target xml file.
  */
-public class JaxbXMLParser {
+public class JaxbXMLParser extends AbstractParser {
 
-    private Logger logger = Logger.getLogger(this.getClass());
-    private List<Bean> beanList = new ArrayList<>();
-    private Map<String, Bean> beanMap = new HashMap<>();
+    private static final Logger logger = Logger.getLogger(JaxbXMLParser.class);
 
-    public Map<String, Bean> parseXmltoBeansMap(String pathToXmlFile, String pathToSchema){
-        if (new XMLValidator().validateXML(pathToXmlFile, pathToSchema)) {
-            try {
-                File file = new File(pathToXmlFile);
-                JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-                Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-                JAXBElement<Context> element = (JAXBElement<Context>) jaxbUnmarshaller.unmarshal(file);
-                ContextHolder.INSTANCE.setAnnotationScan(element.getValue().getAnnotationScan().isEnabled());
-                ContextHolder.INSTANCE.setPackageToScan(element.getValue().getAnnotationScan().getPackage());
-                beanList = element.getValue().getBean();
-                beanList.forEach(bean -> {
-                    beanMap.put(bean.getId(), bean);
-                });
-            } catch (JAXBException e) {
-                logger.debug("XML parsing error : " + e.getMessage());
+    @Override
+    public Map<String, BeanDefinition> parseXmlToBeansDefinitionsMap(String xmlFilePath) throws InvalidXmlException {
+        validateXml(xmlFilePath);
+        Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        try {
+            InputStream xmlIS = getISFromFile(xmlFilePath);
+            JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            JAXBElement<Context> element = (JAXBElement<Context>) jaxbUnmarshaller.unmarshal(xmlIS);
+            ContextHolder.INSTANCE.setAnnotationScan(element.getValue().getAnnotationScan().isEnabled());
+            ContextHolder.INSTANCE.setPackageToScan(element.getValue().getAnnotationScan().getPackage());
+            List<Bean> beanList = element.getValue().getBean();
+            for (Bean bean : beanList){
+                String id = bean.getId();
+                String clazz = bean.getClazz();
+                String scope = bean.getScope();
+                BeanDefinition beanDefinition = BeanDefinition.create(id, clazz, scope);
+                Map<String, Property> propertyMap = new HashMap<>();
+                for (Property p : bean.getProperty()){
+                    propertyMap.put(p.getName(), p);
+                }
+                beanDefinition.setPropertyMap(propertyMap);
+                beanDefinitionMap.put(bean.getId(), beanDefinition);
             }
-            beanList.forEach(bean -> {
-                logger.debug("ContextBean id = " + bean.getId());
-                logger.debug("ContextBean class = " + bean.getClazz());
-            });
-        } else{
-            logger.error("Invalid XML");
+        } catch (JAXBException e) {
+            logger.error(String.format("Error during parsing of xml (%1$s);\nException message : (%2$s).",
+                    xmlFilePath, e.getMessage()));
         }
-        return beanMap;
+        beanDefinitionMap.entrySet().forEach(bean -> {
+            logger.debug("Bean id = " + bean.getValue().getId());
+            logger.debug("Bean class = " + bean.getValue().getClazz());
+            logger.debug("Bean scope = " + bean.getValue().getScope());
+        });
+        return Collections.unmodifiableMap(beanDefinitionMap);
     }
+
+
 }

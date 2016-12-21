@@ -1,14 +1,18 @@
 package com.norsedigital.intedu.parser;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
-import com.norsedigital.intedu.model.generated.Bean;
+import com.norsedigital.intedu.xml.InvalidXmlException;
+import com.norsedigital.intedu.model.BeanDefinition;
 import com.norsedigital.intedu.model.generated.Property;
-import com.norsedigital.intedu.util.XMLValidator;
 import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -19,80 +23,77 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * Returns list of beans read from the target xml file.
  */
-public class SaxXMLParser {
+public class SaxXMLParser extends AbstractParser {
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    private static final Logger logger = Logger.getLogger(SaxXMLParser.class);
 
-    public List<Bean> parseXmlToBeansList(String xmlFilePath) {
+    @Override
+    public Map<String, BeanDefinition> parseXmlToBeansDefinitionsMap(String xmlFilePath) throws InvalidXmlException {
+        validateXml(xmlFilePath);
         ContextHandler contextHandler = new ContextHandler();
-        if (new XMLValidator().validateXML(xmlFilePath, "src/test/resources/context.xsd")) {
             try {
-                File inputFile = new File(xmlFilePath);
+                SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                Schema schema = schemaFactory.newSchema(new StreamSource(getClass().getResourceAsStream(xsdSchemaPath)));
                 SAXParserFactory factory = SAXParserFactory.newInstance();
+                factory.setSchema(schema);
                 SAXParser saxParser = factory.newSAXParser();
-                saxParser.parse(inputFile, contextHandler);
+                saxParser.parse(getISFromFile(xmlFilePath), contextHandler);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(String.format("Error during parsing of xml (%1$s);\nException message : (%2$s).",
+                        xmlFilePath, e.getMessage()));
             }
-        } else {
-            logger.error("Invalid xml");
-        }
-        return contextHandler.getBeanList();
+        return Collections.unmodifiableMap(contextHandler.beanDefinitionMap);
     }
-}
 
-class ContextHandler extends DefaultHandler {
+    private class ContextHandler extends DefaultHandler {
 
-    private Logger logger = Logger.getLogger(this.getClass());
-    private List<Bean> beanList = new ArrayList<>();
-    private Bean bean;
+        private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+        private BeanDefinition beanDefinition;
 
-    @Override
-    public void startElement(String uri,
-                             String localName, String qName, Attributes attributes)
-            throws SAXException {
+        @Override
+        public void startElement(String uri,
+                                 String localName, String qName, Attributes attributes)
+                throws SAXException {
 
-        if (qName.equalsIgnoreCase("bean")) {
-            bean = new Bean();
-            String id = attributes.getValue("id");
-            String clazz = attributes.getValue("class");
-            bean.setId(id);
-            bean.setClazz(clazz);
-        } else if (qName.equalsIgnoreCase("property")) {
-            Property property = new Property();
-            if (attributes.getValue("name") != null) {
+            if (qName.equalsIgnoreCase("bean")) {
+                String id = attributes.getValue("id");
+                String clazz = attributes.getValue("class");
+                String scope = attributes.getValue("scope");
+                beanDefinition = BeanDefinition.create(id, clazz,scope);
+            } else if (qName.equalsIgnoreCase("property")) {
+                Property property = new Property();
                 String name = attributes.getValue("name");
-                property.setName(name);
-            }
-            if (attributes.getValue("value") != null) {
                 String value = attributes.getValue("value");
-                property.setValue(value);
-            }
-            if (attributes.getValue("ref") != null) {
                 String ref = attributes.getValue("ref");
-                property.setRef(ref);
+                if (isValidValue(name)) {
+                    property.setName(name);
+                }
+                if (isValidValue(value)) {
+                    property.setValue(value);
+                }
+                if (isValidValue(ref)) {
+                    property.setRef(ref);
+                }
+                beanDefinition.getPropertyMap().put(name, property);
             }
-            bean.getProperty().add(property);
+        }
+
+        @Override
+        public void endElement(String uri,
+                               String localName, String qName) throws SAXException {
+            if (qName.equalsIgnoreCase("bean")) {
+                logger.debug("Bean id = " + beanDefinition.getId());
+                logger.debug("Bean class = " + beanDefinition.getClazz());
+                logger.debug("Bean scope = " + beanDefinition.getScope());
+                beanDefinitionMap.put(beanDefinition.getId(), beanDefinition);
+            }
+        }
+
+        @Override
+        public void characters(char ch[],
+                               int start, int length) throws SAXException {
         }
     }
 
-    @Override
-    public void endElement(String uri,
-                           String localName, String qName) throws SAXException {
-        if (qName.equalsIgnoreCase("bean")) {
-            logger.debug("Bean id = " + bean.getId());
-            logger.debug("Bean class = " + bean.getClazz());
-            beanList.add(bean);
-        }
-    }
-
-    @Override
-    public void characters(char ch[],
-                           int start, int length) throws SAXException {
-    }
-
-    List<Bean> getBeanList() {
-        return beanList;
-    }
 }
 

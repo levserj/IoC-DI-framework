@@ -1,6 +1,6 @@
 package com.norsedigital.intedu;
 
-import com.norsedigital.intedu.util.XMLValidator;
+import com.norsedigital.intedu.xml.XMLValidator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,19 +13,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class ValidateXMLTest {
 
     private XMLValidator validator;
-    private String location = "src/test/resources/";
-    private String schema = location + "context.xsd";
-    private String context = location + "test-parser-context.xml";
-    private String wrongContext = location + "wrong-context.xml";
 
     @Before
     public void setUp(){
-        validator = new XMLValidator();
+        String xsdSchemaPath = "/context.xsd";
+        validator = new XMLValidator(xsdSchemaPath);
     }
 
     @Test
     public void checkIfCorrectAndIncorrectContextsValidatedAsExpected(){
-        assertThat(validator.validateXML(context, schema), is(true));
-        assertThat(validator.validateXML(wrongContext, schema), is(false));
+
+        String context = "/test-parser-context.xml";
+        String wrongContext = "/wrong-context.xml";
+
+        assertThat(validator.validateXML(context), is(true));
+        assertThat(validator.validateXML(wrongContext), is(false));
     }
 }

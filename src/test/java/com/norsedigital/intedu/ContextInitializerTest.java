@@ -3,11 +3,10 @@ package com.norsedigital.intedu;
 import com.norsedigital.intedu.context.ContextHolder;
 import com.norsedigital.intedu.context.ContextInitializer;
 import com.norsedigital.intedu.model.User;
+import com.norsedigital.intedu.xml.InvalidXmlException;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -19,17 +18,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class ContextInitializerTest {
 
-    private final Logger log = Logger.getLogger(this.getClass());
+    private static final Logger log = Logger.getLogger(ContextInitializerTest.class);
 
-    private static ContextInitializer contextInitializer;
     private static ContextHolder holder;
-    private static String pathToContext = "src/test/resources/test-context.xml";
-    private static String pathToSchema = "src/test/resources/context.xsd";
 
     @BeforeClass
-    public static void setUp(){
-        contextInitializer = new ContextInitializer();
-        contextInitializer.initializeContext(pathToContext, pathToSchema);
+    public static void setUp() throws InvalidXmlException {
+        String pathToContext = "/test-context.xml";
+        new ContextInitializer().initializeContext(pathToContext);
         holder = ContextHolder.INSTANCE;
     }
 

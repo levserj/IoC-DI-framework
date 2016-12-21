@@ -1,6 +1,7 @@
 package com.norsedigital.intedu.model;
 
 import com.norsedigital.intedu.model.generated.Property;
+import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,30 +12,40 @@ import java.util.Map;
 
 public class BeanDefinition {
 
+    private static final Logger log = Logger.getLogger(BeanDefinition.class);
+
     private String id;
     private String clazz;
     private String scope;
     private Map<String, Property> propertyMap;
 
-    public String getId() {
-        return id;
+    public static BeanDefinition create(String id, String clazz, String scope) {
+        if (isValidValue(id) && isValidValue(clazz) && isValidValue(scope)) {
+            return new BeanDefinition(id, clazz, scope);
+        }
+        log.error(String.
+                format("Wrong arguments passed to the BeanDefinition constructor :id = (%1$s), clazz = (%2$s), scope = (%3$s)",
+                        id, clazz, scope));
+        return null;
     }
 
-    public void setId(String id) {
+    private BeanDefinition(String id, String clazz, String scope) {
         this.id = id;
+        this.clazz = clazz;
+        this.scope = scope;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getClazz() {
         return clazz;
     }
 
-    public void setClazz(String clazz) {
-        this.clazz = clazz;
-    }
-
     public Map<String, Property> getPropertyMap() {
-        if (propertyMap == null){
-            propertyMap = new HashMap<String, Property>();
+        if (propertyMap == null) {
+            propertyMap = new HashMap<>();
         }
         return propertyMap;
     }
@@ -49,5 +60,9 @@ public class BeanDefinition {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    private static boolean isValidValue(String value) {
+        return (value != null && value.trim().length() > 0);
     }
 }
